@@ -6,4 +6,6 @@ class varnish::service {
     enable     => true,
     require    => Class['varnish::install'],
   }
+
+
 }

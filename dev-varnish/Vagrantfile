@@ -10,8 +10,8 @@ CONFIG_IP = "10.0.0.10"
 CONFIG_NAME = "dev-varnish"
 
 # Memory and CPUs this box should use
-CONFIG_MEMORY = 1024
-CONFIG_CPUS = 2
+CONFIG_MEMORY = "4096"
+CONFIG_CPUS = "2"
 
 # YOU PROBABLY DO NOT NEED TO CHANGE ANYTHING BELOW THIS LINE
 
@@ -22,11 +22,13 @@ Vagrant.configure("2") do |config|
   config.vm.network :private_network, ip: CONFIG_IP
   config.ssh.forward_agent = true
 
-  config.vm.provider :virtualbox do |v|
-    v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+  config.vm.provider "virtualbox" do |v|
     v.memory = CONFIG_MEMORY
     v.cpus = CONFIG_CPUS
     v.name = CONFIG_NAME
+    v.customize ["modifyvm", :id, "--ioapic", "on"]
+    v.customize ["modifyvm", :id, "--paravirtprovider", "kvm"]
+    v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
   end
 
   config.vm.provider "vmware_fusion" do |v|
@@ -35,6 +37,13 @@ Vagrant.configure("2") do |config|
   end
 
   config.vm.provider "vmware_workstation" do |v|
+    v.box.url = "https://atlas.hashicorp.com/puppetlabs/boxes/debian-8.2-64-puppet/versions/1.0.0/providers/vmware_desktop.box"
+    v.vmx["memsize"] = CONFIG_MEMORY
+    v.vmx["numvcpus"] = CONFIG_CPUS
+  end
+
+  config.vm.provider "vmware_desktop" do |v|
+    v.box.url = "https://atlas.hashicorp.com/puppetlabs/boxes/debian-8.2-64-puppet/versions/1.0.0/providers/vmware_desktop.box"
     v.vmx["memsize"] = CONFIG_MEMORY
     v.vmx["numvcpus"] = CONFIG_CPUS
   end
