@@ -1,0 +1,35 @@
+php_version: '5.6'
+
+php_upload_max_filesize: '16M'
+php_max_file_uploads: '20'
+php_memory_limit: '128M'
+php_error_reporting: 'E_ALL & ~E_DEPRECATED & ~E_STRICT'
+php_post_max_size: '16M'
+
+php_modules:
+  - "php5-cli"
+  - "php5-mysql"
+  - "php5-gd"
+  - "php5-imagick"
+  - "php5-curl"
+
+apache_vhosts:
+  site1:
+    vhost_docroot: '/var/www'
+    vhost_name: 'varnish.dev'
+    vhost_options: 'All'
+    vhost_port: '8080'
+
+mysql:
+  root_password: 'vagrant'
+  sites:
+    site1:
+      db_name: 'db_site1'
+      db_user: 'vagrant'
+      db_password: 'vagrant'
+
+varnish_port: 80
+apache_port: 8080
+
+symfony: true
+composer: true

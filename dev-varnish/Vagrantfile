@@ -1,0 +1,62 @@
+# SETTINGS FOR BOX
+
+# The folder on your computer that contains your websites, this will be mapped to /var/www on the box
+CONFIG_WEBROOT = "."
+
+# The private IP address used - this should be something that doesn't exist on your network
+CONFIG_IP = "10.0.0.10"
+
+# A name for this box
+CONFIG_NAME = "dev-varnish"
+
+# Memory and CPUs this box should use
+CONFIG_MEMORY = 1024
+CONFIG_CPUS = 2
+
+# YOU PROBABLY DO NOT NEED TO CHANGE ANYTHING BELOW THIS LINE
+
+Vagrant.configure("2") do |config|
+
+  config.vm.box = "puppetlabs/debian-8.2-64-puppet"
+
+  config.vm.network :private_network, ip: CONFIG_IP
+  config.ssh.forward_agent = true
+
+  config.vm.provider :virtualbox do |v|
+    v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+    v.memory = CONFIG_MEMORY
+    v.cpus = CONFIG_CPUS
+    v.name = CONFIG_NAME
+  end
+
+  config.vm.provider "vmware_fusion" do |v|
+    v.vmx["memsize"] = CONFIG_MEMORY
+    v.vmx["numvcpus"] = CONFIG_CPUS
+  end
+
+  config.vm.provider "vmware_workstation" do |v|
+    v.vmx["memsize"] = CONFIG_MEMORY
+    v.vmx["numvcpus"] = CONFIG_CPUS
+  end
+
+  config.vm.provider "hyperv" do |v|
+    v.maxmemory = CONFIG_MEMORY
+    v.cpus = CONFIG_CPUS
+    v.vmname = CONFIG_NAME
+  end
+
+  nfs_setting = RUBY_PLATFORM =~ /darwin/ || RUBY_PLATFORM =~ /linux/
+
+  config.vm.synced_folder CONFIG_WEBROOT, "/var/www", id: "vagrant-root" , :nfs => nfs_setting
+  config.vm.provision :shell, :inline => "sudo apt-get update"
+
+
+  # Enable the Puppet provisioner, point it to our files
+  config.vm.provision :puppet do |puppet|
+    puppet.environment        = 'all'
+    puppet.environment_path   = 'puppet'
+    puppet.manifests_path     = "puppet/all/manifests"
+    puppet.manifest_file      = "site.pp"
+    puppet.hiera_config_path  = "puppet/hiera.yaml"
+  end
+end
