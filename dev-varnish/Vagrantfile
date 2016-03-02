@@ -13,59 +13,67 @@ CONFIG_NAME = "dev-varnish"
 CONFIG_MEMORY = "4096"
 CONFIG_CPUS = "2"
 
+CONFIG_NB_NODES = 1
+
 # YOU PROBABLY DO NOT NEED TO CHANGE ANYTHING BELOW THIS LINE
 
 Vagrant.configure("2") do |config|
 
-  config.vm.box = "puppetlabs/debian-8.2-64-puppet"
+    (1..CONFIG_NB_NODES).each do |i|
+      config.vm.define CONFIG_NAME + "-#{i}" do |node|
+          node.vm.box = "puppetlabs/debian-8.2-64-puppet"
 
-  config.vm.network :private_network, ip: CONFIG_IP
-  config.ssh.forward_agent = true
+          node.vm.network :private_network, ip: CONFIG_IP
+          node.vm.hostname = CONFIG_NAME
+          node.ssh.forward_agent = true
 
-  config.vm.provider "virtualbox" do |v|
-    v.memory = CONFIG_MEMORY
-    v.cpus = CONFIG_CPUS
-    v.name = CONFIG_NAME
-    v.customize ["modifyvm", :id, "--ioapic", "on"]
-    v.customize ["modifyvm", :id, "--paravirtprovider", "kvm"]
-    v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
-  end
+          node.vm.provider "virtualbox" do |v|
+            v.memory = CONFIG_MEMORY
+            v.cpus = CONFIG_CPUS
+            v.name = CONFIG_NAME
+            v.customize ["modifyvm", :id, "--ioapic", "on"]
+            v.customize ["modifyvm", :id, "--paravirtprovider", "kvm"]
+            v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+          end
 
-  config.vm.provider "vmware_fusion" do |v|
-    v.vmx["memsize"] = CONFIG_MEMORY
-    v.vmx["numvcpus"] = CONFIG_CPUS
-  end
+          node.vm.provider "vmware_fusion" do |v|
+            v.vmx["memsize"] = CONFIG_MEMORY
+            v.vmx["numvcpus"] = CONFIG_CPUS
+          end
 
-  config.vm.provider "vmware_workstation" do |v|
-    v.box.url = "https://atlas.hashicorp.com/puppetlabs/boxes/debian-8.2-64-puppet/versions/1.0.0/providers/vmware_desktop.box"
-    v.vmx["memsize"] = CONFIG_MEMORY
-    v.vmx["numvcpus"] = CONFIG_CPUS
-  end
+          node.vm.provider "vmware_workstation" do |v|
+            v.box.url = "https://atlas.hashicorp.com/puppetlabs/boxes/debian-8.2-64-puppet/versions/1.0.0/providers/vmware_desktop.box"
+            v.vmx["memsize"] = CONFIG_MEMORY
+            v.vmx["numvcpus"] = CONFIG_CPUS
+          end
 
-  config.vm.provider "vmware_desktop" do |v|
-    v.box.url = "https://atlas.hashicorp.com/puppetlabs/boxes/debian-8.2-64-puppet/versions/1.0.0/providers/vmware_desktop.box"
-    v.vmx["memsize"] = CONFIG_MEMORY
-    v.vmx["numvcpus"] = CONFIG_CPUS
-  end
+          node.vm.provider "vmware_desktop" do |v|
+            v.box.url = "https://atlas.hashicorp.com/puppetlabs/boxes/debian-8.2-64-puppet/versions/1.0.0/providers/vmware_desktop.box"
+            v.vmx["memsize"] = CONFIG_MEMORY
+            v.vmx["numvcpus"] = CONFIG_CPUS
+          end
 
-  config.vm.provider "hyperv" do |v|
-    v.maxmemory = CONFIG_MEMORY
-    v.cpus = CONFIG_CPUS
-    v.vmname = CONFIG_NAME
-  end
+          node.vm.provider "hyperv" do |v|
+            v.maxmemory = CONFIG_MEMORY
+            v.cpus = CONFIG_CPUS
+            v.vmname = CONFIG_NAME
+          end
 
-  nfs_setting = RUBY_PLATFORM =~ /darwin/ || RUBY_PLATFORM =~ /linux/
+          nfs_setting = RUBY_PLATFORM =~ /darwin/ || RUBY_PLATFORM =~ /linux/
 
-  config.vm.synced_folder CONFIG_WEBROOT, "/var/www", id: "vagrant-root" , :nfs => nfs_setting
-  config.vm.provision :shell, :inline => "sudo apt-get update"
+          node.vm.synced_folder CONFIG_WEBROOT, "/var/www", id: "vagrant-root" , :nfs => nfs_setting
+          node.vm.provision :shell, :inline => "sudo apt-get update"
 
 
-  # Enable the Puppet provisioner, point it to our files
-  config.vm.provision :puppet do |puppet|
-    puppet.environment        = 'all'
-    puppet.environment_path   = 'puppet'
-    puppet.manifests_path     = "puppet/all/manifests"
-    puppet.manifest_file      = "site.pp"
-    puppet.hiera_config_path  = "puppet/hiera.yaml"
-  end
+          # Enable the Puppet provisioner, point it to our files
+          node.vm.provision :puppet do |puppet|
+            puppet.environment        = 'all'
+            puppet.environment_path   = 'puppet'
+            puppet.manifests_path     = "puppet/all/manifests"
+            puppet.manifest_file      = "site.pp"
+            puppet.hiera_config_path  = "puppet/hiera.yaml"
+          end
+      end
+    end
+
 end
