@@ -12,8 +12,17 @@ backend default {
   .port = "8080";
 }
 
+# Debug header
+sub vcl_deliver {
+    if (obj.hits > 0) {
+            set resp.http.X-Cache = "HIT";
+    } else {
+            set resp.http.X-Cache = "MISS";
+    }
+}
+
 sub vcl_recv {
- # Remove Google Analytics cookies
+  # Remove Google Analytics cookies
   if (req.http.Cookie) {
       set req.http.Cookie = regsuball(req.http.Cookie, "(^|;\s*)(__[a-z]+|has_js)=[^;]*", "");
   }
@@ -31,9 +40,9 @@ sub vcl_backend_response {
     return(deliver);
   }
 
-  if (bereq.url ~ "^/inc") {
+  if (bereq.url ~ "^/index.php") {
+    set beresp.ttl = 60s;
+  } else {
     set beresp.ttl = 30s;
-  }else{
-    set beresp.ttl = 120s;
   }
 }
