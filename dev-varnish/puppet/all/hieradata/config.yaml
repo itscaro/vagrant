@@ -12,8 +12,15 @@ php:
 php_extensions:
   - "cli"
   - "mysql"
+  - "pgsql"
+  - "sqlite3"
   - "gd"
   - "curl"
+  - "memcached"
+  - "intl"
+  - "xmlrpc"
+#  - "redis"
+#  - "apcu"
 
 apache_vhosts:
   site1:
