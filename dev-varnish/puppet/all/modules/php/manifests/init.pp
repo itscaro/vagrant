@@ -1,40 +1,54 @@
 class php(
-  $packages = hiera('php_modules'),
-  $php_upload_max_filesize = hiera('php_upload_max_filesize'),
-  $php_max_file_uploads = hiera('php_max_file_uploads'),
-  $php_memory_limit = hiera('php_memory_limit'),
-  $php_error_reporting = hiera('php_error_reporting'),
-  $php_post_max_size = hiera('php_post_max_size'),
+  $php_version = hiera('php_version'),
+  $php_extensions = hiera('php_extensions'),
+  $php = hiera('php'),
 ) {
 
-  $phpPackage = 'php5'
+  if $php_version == 7.0 {
+    # PHP 7.0
+    $phpPackageName = "php$php_version"
+    $phpIniPathServerWeb = "/etc/php/7.0/apache2/php.ini"
+    $phpIniPathCli = "/etc/php/7.0/cli/php.ini"
+  } else {
+    # PHP 5.x
+    $phpPackageName = 'php5'
+    $phpIniPathServerWeb = "/etc/php5/apache2/php.ini"
+    $phpIniPathCli = "/etc/php5/cli/php.ini"
+  }
+  $_extensions = $php_extensions.map |$item| { "$phpPackageName-$item" }
 
-  package { $phpPackage:
+  package { $phpPackageName:
     ensure  => present,
     require => Package["apache2"],
   }
 
-  package { $packages:
+  package { $_extensions:
     ensure  => present,
-    require => Package[$phpPackage],
+    require => Package[$phpPackageName],
   }
 
   exec { "enabledphp":
-    command => "a2enmod $phpPackage",
+    command => "a2enmod $phpPackageName",
     path    => ["/usr/bin", "/usr/sbin", "/bin"],
-    require => Package[$phpPackage, "apache2"],
+    require => Package[$phpPackageName, "apache2"],
   }
 
-  package { 'libapache2-mod-php5':
+  package { "libapache2-mod-$phpPackageName":
     ensure  => present,
-    require => Package[$phpPackage, "apache2"],
+    require => Package[$phpPackageName, "apache2"],
   }
 
-  file { '/etc/php5/apache2/php.ini':
+  file { $phpIniPathServerWeb:
     ensure     => file,
     content    => template("php/php.ini.erb"),
     notify     => Service["apache2"],
-    require    => Package[$phpPackage],
+    require    => Package[$phpPackageName],
+  }
+
+  file { $phpIniPathCli:
+    ensure     => file,
+    content    => template("php/php.cli.ini.erb"),
+    require    => Package[$phpPackageName],
   }
 
   include php::symfony, php::composer

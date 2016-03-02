@@ -1,17 +1,19 @@
-php_version: '5.6'
+php_version: 7.0
 
-php_upload_max_filesize: '16M'
-php_max_file_uploads: '20'
-php_memory_limit: '128M'
-php_error_reporting: 'E_ALL & ~E_DEPRECATED & ~E_STRICT'
-php_post_max_size: '16M'
+php:
+  ini:
+    post_max_size: '16M'
+    upload_max_filesize: '16M'
+    max_file_uploads: '20'
+    memory_limit: '128M'
+    timezone: "Europe/Paris"
+    error_reporting: 'E_ALL & ~E_DEPRECATED & ~E_STRICT'
 
-php_modules:
-  - "php5-cli"
-  - "php5-mysql"
-  - "php5-gd"
-  - "php5-imagick"
-  - "php5-curl"
+php_extensions:
+  - "cli"
+  - "mysql"
+  - "gd"
+  - "curl"
 
 apache_vhosts:
   site1:

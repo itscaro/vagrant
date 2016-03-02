@@ -3,7 +3,7 @@ class base (
 ) {
   notify { "PHP Version $php_version":}
 
-  if ($php_version == '5.5') or ($php_version == '5.6') or ($php_version == '7.0') {
+  if ($php_version == 5.5) or ($php_version == 5.6) or ($php_version == 7.0) {
 
 	  # add dotdeb repo to sources.list.d
 	  file { 'dotdeb':
