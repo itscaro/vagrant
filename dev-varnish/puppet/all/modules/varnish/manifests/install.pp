@@ -8,6 +8,7 @@ class varnish::install {
   }
 
   exec { 'add_key':
+    unless  => 'apt-key list | grep varnish-cache.org',
     command => "curl https://repo.varnish-cache.org/debian/GPG-key.txt | apt-key add -",
     path    => ["/usr/bin", "/usr/sbin", "/bin"],
     before  => Exec['apt-get_update'],
